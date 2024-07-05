@@ -1,0 +1,14 @@
+wandb
+data/
+logs
+__pycache__
+fig
+fig
+*log
+*.zip
+?
+t_test.npy
+result
+res1
+detroit
+data_old/
