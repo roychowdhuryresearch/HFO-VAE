@@ -211,9 +211,9 @@ def plot_trace(axs, fontsize=6, mode = 1):
         ax.tick_params(axis='both', which='major', labelsize=fontsize, pad=0.1)
 
     if mode == 1:
-        loaded = np.load("./draw/POL FP55_646495_646540.npz")
+        loaded = np.load("./draw/POL_FP55_646495_646540.npz")
     else:
-        loaded = np.load("./draw/POL G2_776389_776448.npz")
+        loaded = np.load("./draw/POL_G2_776389_776448.npz")
     data = loaded["data"]
     filtered = loaded["filtered"]
     start = loaded["start"]
