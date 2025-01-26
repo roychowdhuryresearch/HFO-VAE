@@ -44,9 +44,7 @@ def sample(df,mu,n_sample_df = 4000):
 
 
 def fit_embedding(train_fn,test_fn, save_fn, n_sample_df = 4000):
-    print("train:")
     df_train, mu_train = load_df(train_fn)
-    print("test:")
     df_test, mu_test = load_df(test_fn)
     if mu_train.shape[1] > 2:
         from cuml.manifold.t_sne import TSNE

@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import tqdm 
-from src.dataloader import create_loader_multi_processing
+from src.dataloader import create_loader_multi_processing,create_loader
 torch.use_deterministic_algorithms(True)
 from src.resnetVAEs import resnetVAE
 from src.NeuralCNN_VAE import NeuralVAE
@@ -85,7 +85,8 @@ class Trainer():
         return torch.optim.AdamW(model.parameters(), self.lr, weight_decay=1e-5)
         
     def _init_dataloader(self, k, train = True, train_uniform_sample = True):
-        return create_loader_multi_processing(k, args, train= train, train_uniform_sample= train_uniform_sample)
+        return create_loader(k, args, train= train, train_uniform_sample= train_uniform_sample)
+        #return create_loader_multi_processing(k, args, train= train, train_uniform_sample= train_uniform_sample)
     
     def reconstruction_loss(self, imgs, out):
         return torch.mean(self.criterion(imgs,out).view(len(imgs), -1), -1)
@@ -96,7 +97,7 @@ class Trainer():
         kld_loss = kl_divergence(x_dist, Normal(torch.zeros_like(mu), torch.ones_like(mu))).sum(1)
         if beta_learnable:
             new_beta = beta+beta_lr*(kld_loss.mean().item()-reconstruct_loss.mean().item())
-            # print("beta:", beta, "new_beta:", new_beta, "kld_loss:", kld_loss.mean().item(), "reconstruct_loss:", reconstruct_loss.mean().item())
+            print("beta:", beta, "new_beta:", new_beta, "kld_loss:", kld_loss.mean().item(), "reconstruct_loss:", reconstruct_loss.mean().item())
             #clip beta to be between 0 and 1
             new_beta = min(max(new_beta,0),1)
         else:

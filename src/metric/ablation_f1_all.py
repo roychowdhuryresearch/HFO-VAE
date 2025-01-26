@@ -40,7 +40,8 @@ def get_f1(date, suffix):
             y_train = df_train["seizure-free"].values
             X_test = df_test[col].values
             y_test = df_test["seizure-free"].values
-            clf = RandomForestClassifier(random_state=0, n_estimators=50, max_depth=None, criterion='gini', class_weight='balanced') 
+            clf = RandomForestClassifier(random_state=0, n_estimators=100, max_depth=None, criterion='gini', class_weight='balanced') 
+            #clf = RandomForestClassifier(random_state=0, n_estimators=100, class_weight='balanced', max_depth=7)
             clf.fit(X_train, y_train)
             y_pred = clf.predict(X_test)
             y_pred_proba = clf.predict_proba(X_test)[:,1]
@@ -74,7 +75,7 @@ def get_f1(date, suffix):
 def draw_f1(df, col, ax, fontsize=6, base_col = "r_spike"):
     df = df.copy()
     df = df[df["n_artifact"] <= 10]
-    df = df[df["n_mphfo"] <= 2]
+    df = df[df["n_mphfo"] <= 3]
     df = df.sort_values(["n_artifact", "n_mphfo"])
     # scatter plot
     mean_df = df[df["t"] == "f1"]
@@ -111,8 +112,8 @@ if __name__ == "__main__":
         
     df = pd.read_csv(fn)
 
-    df["n_artifact"] = df["n_artifact"].astype(int)//1000
-    df["n_mphfo"] = df["n_mphfo"].astype(int)//1000
+    df["n_artifact"] = df["n_artifact"].astype(int)/1000
+    df["n_mphfo"] = df["n_mphfo"].astype(int)/1000
     df["Sample"] = df["n_artifact"].astype(str) + "k/" + df["n_mphfo"].astype(str) + "k"
     # reset index column, name it as t 
     df = df.rename(columns={"Unnamed: 0":"t"})

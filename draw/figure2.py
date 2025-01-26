@@ -214,16 +214,17 @@ def plot_trace(axs, fontsize=6, mode = 1):
         loaded = np.load("./draw/POL_FP55_646495_646540.npz")
     else:
         loaded = np.load("./draw/POL_G2_776389_776448.npz")
+    print(loaded.files)
     data = loaded["data"]
     filtered = loaded["filtered"]
     start = loaded["start"]
     end = loaded["end"]
-    tf_out = loaded["tf_out"]
+    #tf_out = loaded["tf_out"]
     mid = (start + end)/2
     window = 285
     plot_func(data, ax2)
     plot_func(filtered, ax3, m=2)
-    plot_tf(tf_out, ax1)
+    #plot_tf(tf_out, ax1)
     #ax1.set_ylabel("Voltage (mV)", fontsize=fontsize)
     ax1.set_xlabel("Time (ms)", fontsize=fontsize, labelpad=0.1)
     if mode == 1:

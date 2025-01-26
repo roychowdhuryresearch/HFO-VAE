@@ -4,6 +4,15 @@ import glob
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sys
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
+import src.param as param
+# disable warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 def processing(name, suffix):
     folder = f"./res/{name}/"
@@ -24,7 +33,7 @@ def processing(name, suffix):
     df_soz = df_pred.groupby(["pt_names", "channel_name" ,"soz"]).agg({"pred": ["sum", "count"]}).reset_index()
     df_soz.columns = ["pt_names","channel_name" ,"soz", "n_mpHFO", "n_HFO"] 
 
-    df_meta = pd.read_csv("./data/meta.csv")
+    df_meta = pd.read_csv(param.get_args()["meta_fn"])
 
     df_soz = df_soz.merge(df_meta, left_on="pt_names", right_on="pt_name", how="left")
     df_soz["r_non_mpHFO"] = (df_soz["n_HFO"] - df_soz["n_mpHFO"])/df_soz["length"]*60

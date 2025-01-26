@@ -17,7 +17,6 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from itertools import repeat
 from sklearn.model_selection import KFold
-from src.kfold_pt import PT_NAMES
 
 class HFODataset(Dataset):
     def __init__(self, loaded, params, uniform_sample = False, seed = 42):
@@ -115,10 +114,7 @@ def retrive_data(patient_folder):
     res["artifact"] = res["artifact"][index]
     res["hfo_type"] = res["hfo_type"][index]
     res["duration"] = res["duration"][index]
-    
     return res
-
-
 
 def create_kfold_index(patient_list, kth, seed, K=5):
     kf = KFold(n_splits=K, shuffle=True, random_state=seed)
@@ -130,6 +126,7 @@ def create_kfold_patient_and_dataset(patient_list, dataset_list, kth, seed, K=5)
     kf = KFold(n_splits=K, shuffle=True, random_state=seed)
     for i, (train_index, test_index) in enumerate(kf.split(patient_list)):
         if i == kth:
+            print("train_index",train_index, "test_index",test_index)
             return patient_list[train_index],dataset_list[train_index],patient_list[test_index], dataset_list[test_index]
 
 def retrive_one_patient(selected_patient, dataset_name, data_dir):
@@ -190,6 +187,7 @@ def create_loader_multi_processing(k, args, train= True, train_uniform_sample=Tr
     test_dataset_names = []
 
     for pt_names,datasets  in zip([ucla_resected, detroit_resected, non_resected], [ucla_resected_dataset, detroit_resected_dataset, non_resected_dataset]):
+        print("pt_names",pt_names, "datasets",datasets)
         train_pt_names,train_datasets, test_pt_names, test_datasets = create_kfold_patient_and_dataset(pt_names, datasets, k, args["seed"], K=args["K"])
         train_pts.append(train_pt_names)
         test_pts.append(test_pt_names)
@@ -203,15 +201,19 @@ def create_loader_multi_processing(k, args, train= True, train_uniform_sample=Tr
     test_dataset_names = np.concatenate(test_dataset_names)
 
     train_indexs = np.arange(len(train_pts))
+    print("train_pts",train_pts)
     np.random.seed(k)
     np.random.shuffle(train_indexs)
+    print("train_indexs",train_indexs)
 
     val_index = train_indexs[:30]
     train_index = train_indexs[30:]
 
     val_pt_names = train_pts[val_index]
     train_pt_names = train_pts[train_index]
-
+    print("test",test_pts) 
+    print("eval",val_pt_names)
+    print("train",train_pt_names)
     val_dataset_names = train_dataset_names[val_index]
     train_dataset_names = train_dataset_names[train_index]
     if train:
@@ -233,41 +235,6 @@ def create_loader_multi_processing(k, args, train= True, train_uniform_sample=Tr
         test_dataset = data.ConcatDataset(test_dataset)
         test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=1, pin_memory=True)
         return test_loader
-    
-def create_loader(k, args, train= True, train_uniform_sample=True):
-    meta = pd.read_csv(args["meta_fn"])
-    test_pt_names = PT_NAMES[k]["test_pt"]
-    val_pt_names = PT_NAMES[k]["val_pt"]
-    dataset_name = meta["dataset"].values
-    # match the dataset name with the pt_name
-    test_dataset_names = [dataset_name[np.where(meta["pt_name"].values == pt_name)[0][0]] for pt_name in test_pt_names]
-    val_dataset_names = [dataset_name[np.where(meta["pt_name"].values == pt_name)[0][0]] for pt_name in val_pt_names]
-    train_pt_names = PT_NAMES[k]["train_pt"]
-    train_dataset_names = [dataset_name[np.where(meta["pt_name"].values == pt_name)[0][0]] for pt_name in train_pt_names]
-    if train:
-        ## Train
-        #print(all_pt_names[train_index], all_pt_names[val_index])
-        train_dataset, _ = create_dataset_multi_process(train_pt_names, train_dataset_names, args["data_dir"], args, uniform_sample = train_uniform_sample)   
-        train_dataset = data.ConcatDataset(train_dataset)
-        train_loader = DataLoader(train_dataset, batch_size=args["batch_size"], shuffle=True, num_workers=1, pin_memory=True)
-        val_dataset, _= create_dataset_multi_process(val_pt_names, val_dataset_names, args["data_dir"], args, uniform_sample = train_uniform_sample)
-        val_dataset = data.ConcatDataset(val_dataset)
-        val_loader = DataLoader(val_dataset, batch_size=2048, shuffle=True, num_workers=1, pin_memory=True)
-        print("loader created")
-        return train_loader, val_loader
-    else:
-        ## test
-        #print(all_pt_names[test_index])
-        args["time_augmentation"] = False
-        test_dataset, _ = create_dataset_multi_process(test_pt_names, test_dataset_names, args["data_dir"], args, uniform_sample = False)
-        test_dataset = data.ConcatDataset(test_dataset)
-        test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=1, pin_memory=True)
-        return test_loader
-    
-
-
-    
-
 
 if __name__ == "__main__":
     import sys

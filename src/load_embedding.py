@@ -10,6 +10,13 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import f1_score, precision_score, recall_score
 from multiprocessing import Pool
 from fit_embedding import sample, load_df
+# add parent directory of this file to path
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import src.param as param
+# disable warnings
+import warnings
+warnings.filterwarnings("ignore")
 
 def load_anatomical_locations(path):
     dfs = []
@@ -85,7 +92,7 @@ def merge_dataframes(df_embedding,df_anatomical, df_pathology,df_labels,df_meta)
     return df_use
 
 def create_df(path:str,label_file:str, embedding_file:str):
-    meta = load_meta("./data/meta.csv")
+    meta = load_meta(param.get_args()["meta_fn"])
     pathology = load_pathology("./data/Pathology_HFOstudy.csv")
     anatomical = load_anatomical_locations("./data/anatomical")
     embedding = pd.read_csv(os.path.join(path,embedding_file))

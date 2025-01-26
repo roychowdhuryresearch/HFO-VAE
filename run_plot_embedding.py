@@ -1,7 +1,7 @@
 import sys
 import os
 name = "2023-12-28_1"
-suffix = "10000_2000_81"
+suffix = "10000_3000_81"
 
 cmd = f"nohup python -u src/latent_vis/plot_age.py {name} {suffix} > ./logs/plot_age.out &"
 os.system(cmd)

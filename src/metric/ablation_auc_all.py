@@ -40,7 +40,8 @@ def get_f1(date, suffix):
             y_train = df_train["seizure-free"].values
             X_test = df_test[col].values
             y_test = df_test["seizure-free"].values
-            clf = RandomForestClassifier(random_state=0, n_estimators=50, max_depth=None, criterion='gini', class_weight='balanced') 
+            #clf = RandomForestClassifier(random_state=0, n_estimators=50, max_depth=None, criterion='gini', class_weight='balanced') 
+            clf = RandomForestClassifier(random_state=42+i, n_estimators=150, class_weight='balanced', max_depth=7)
             clf.fit(X_train, y_train)
             y_pred = clf.predict(X_test)
             y_pred_proba = clf.predict_proba(X_test)[:,1]
@@ -74,7 +75,7 @@ def get_f1(date, suffix):
 def draw_f1(df, col, ax, fontsize=6, base_col = "r_spike"):
     df = df.copy()
     df = df[df["n_artifact"] <= 10]
-    df = df[df["n_mphfo"] <= 2]
+    df = df[df["n_mphfo"] <= 3]
     df = df.sort_values(["n_artifact", "n_mphfo"])
     # name index column as t
     df = df.reset_index()
@@ -83,7 +84,7 @@ def draw_f1(df, col, ax, fontsize=6, base_col = "r_spike"):
     mean_df = df[df["t"] == "f1"]
     sns.scatterplot(x="Sample", y=col, data=mean_df, ax=ax, markers="X")
     std_df = df[df["t"] == "f1_std"]
-    
+
     ax.errorbar(x=np.arange(len(mean_df)), y=mean_df[col], yerr=std_df[col]/5, fmt="none", capsize=5, color="black")
     # baseline auc
     baseline_f1 = mean_df[base_col].mean()
@@ -93,9 +94,10 @@ def draw_f1(df, col, ax, fontsize=6, base_col = "r_spike"):
     ax.fill_between(np.arange(-0.5,len(mean_df)+0.5), baseline_f1 - baseline_std/5, baseline_f1 + baseline_std/5, alpha=0.2, color='blue')
     ax.set_xlabel("", fontsize=fontsize)
     ax.set_ylabel("F1", fontsize=fontsize)
-    ax.set_xlim([-0.3,3.3])   
+    #ax.set_xlim([-0.3,3.3])   
     ax.legend(loc = "lower left", fontsize=fontsize)
     # ticks
+    print(mean_df["Sample"].unique())   
     ax.set_xticklabels(mean_df["Sample"], rotation=45, ha='right', fontsize=fontsize, rotation_mode="anchor")
     ax.tick_params(axis='both', which='major', labelsize=fontsize, pad=0)
 
@@ -114,10 +116,10 @@ def draw_new(df, ax, baseline_auc_col = "r_spike", wanted_col="r_pred", name = "
     df = df.copy()
 
     df[name] = df[wanted_col]
-    df["Num Samples in Arifact Rejection"] = df["Num Samples in Arifact Rejection"] // 1000
-    df["Num Samples in mpHFO Detection"] = df["Num Samples in mpHFO Detection"] // 1000
+    df["Num Samples in Arifact Rejection"] = df["Num Samples in Arifact Rejection"] / 1000
+    df["Num Samples in mpHFO Detection"] = df["Num Samples in mpHFO Detection"] / 1000
     df = df[df["Num Samples in Arifact Rejection"] <= 10]
-    df = df[df["Num Samples in mpHFO Detection"] <= 2]
+    df = df[df["Num Samples in mpHFO Detection"] <= 3]
     # sort by num samples in artifact rejection and mpHFO detection
     df = df.sort_values(["Num Samples in Arifact Rejection", "Num Samples in mpHFO Detection"])
     # make a col with name sample 
@@ -135,6 +137,7 @@ def draw_new(df, ax, baseline_auc_col = "r_spike", wanted_col="r_pred", name = "
     ax.set_xlabel("", fontsize=frontsize)
     ax.set_ylabel("AUC", fontsize=frontsize)
     # set xticks
+    print(df["Sample"].unique())
     ax.set_xticks(range(len(df["Sample"].unique())))
     ax.set_xticklabels(df["Sample"].unique(), rotation=45, ha='right', fontsize=frontsize, rotation_mode="anchor")
 
@@ -169,15 +172,17 @@ if __name__ == "__main__":
             res.append(get_f1(date, suffix))
             return pd.concat(res)
         # only keep res_folders has 5000 or 10000 samples in artifact rejection and 2000 or 1000 samples in mpHFO detection
-        res_folders = [f for f in res_folders if int(f.split("/")[-1].split("_")[0]) in [5000, 10000] and int(f.split("/")[-1].split("_")[1]) in [2000, 1000]]
+        res_folders = [f for f in res_folders if int(f.split("/")[-1].split("_")[0]) in [5000, 10000] and int(f.split("/")[-1].split("_")[1]) in [2000, 2500,3000,1500,1000]]
+        print(res_folders)
         df = pd.concat([extract_f1(folder) for folder in res_folders])
         df.to_csv(fn)
     
     df = pd.read_csv(fn)
 
-    df["n_artifact"] = df["n_artifact"].astype(int)//1000
-    df["n_mphfo"] = df["n_mphfo"].astype(int)//1000
+    df["n_artifact"] = df["n_artifact"].astype(int)/1000
+    df["n_mphfo"] = df["n_mphfo"].astype(int)/1000
     df["Sample"] = df["n_artifact"].astype(str) + "k/" + df["n_mphfo"].astype(str) + "k"
+    print(df["Sample"].unique())    
     # reset index column, name it as t 
     df = df.rename(columns={"Unnamed: 0":"t"})
     df.rename(columns={"% Path. HFO":"mpHFO", "% spk-HFO":"spkHFO", "SOZ Resc. + Age + Gender + % spk-HFO":"base.+soz+spkHFO", "SOZ Resc. + Age + Gender + % Path. HFO":"base.+soz+mpHFO"}, inplace=True)

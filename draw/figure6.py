@@ -57,16 +57,20 @@ def draw_f1(ax, fontsize=6):
     # only remove the second row
     df.drop(df.index[1], inplace=True)
     df = df.iloc[[0,1,2,4,5,6,7,8]]
+    df = df.iloc[[0,1,2,3,6,7]].copy()
     category_order = df['feature'].unique()
-    sns.barplot(x="feature", y="f1_mean", data=df, ax=ax, order=category_order, width=0.6, hue="feature", hue_order=category_order, palette="Set2")
+    sns.barplot(x="feature", y="f1_mean", data=df, ax=ax, order=category_order, width=0.4, hue="feature", hue_order=category_order, palette="Set2")
     ax.errorbar(x=np.arange(len(df)), y=df["f1_mean"], yerr=df["f1_std"]/5, fmt="none", capsize=5, color="black") 
     # remove the third row 
     labels = ["HFO", "spkHFO", "mpHFO", "demo.","+soz","+spkHFO","+mpHFO", "+spkHFO\n+soz","+mpHFO\n+soz"]
     labels = ["HFO", "spkHFO", "mpHFO", "base.\n+soz","base.\n+spkHFO","base.\n+mpHFO", "base.\n+spkHFO\n+soz","base.\n+mpHFO\n+soz"]
+   
+    index = np.array([0,1,2,3,6,7])
+    labels = np.array(labels)[index]
     ax.set_xticklabels(labels, rotation=90, fontsize=fontsize)
     ax.set_ylabel("F1 score", fontsize=fontsize)
     ax.set_xlabel("")
-    ax.set_ylim([0.6, 0.85])
+    ax.set_ylim([0.6, 0.88])
     ax.tick_params(axis='both', which='major', labelsize=fontsize, pad=0.1)
     # draw vertical line
     #ax.axvline(x=2.5, color="black", linewidth=1, linestyle="--")
@@ -76,9 +80,9 @@ def draw_f1(ax, fontsize=6):
 
 
 if __name__ == "__main__":
-    date = "2024-07-01_2"
+    date = "2023-12-28_2"
     suffix = "10000_2000_81"
-    df = pd.read_csv(f'./res/{date}/{suffix}/embedding_save.csv')
+    #df = pd.read_csv(f'./res/{date}/{suffix}/embedding_save.csv')
     cm = 1/2.54 
     #fig = plt.figure(figsize=(10.1*cm, 15*cm))
     fontsize = 6
@@ -100,4 +104,4 @@ if __name__ == "__main__":
     fig.text(0.02, 0.5, "c", ha='center', fontsize=fontsize+2, weight='bold')
     #fig.text(0.02, 0.33, "d", ha='center', fontsize=fontsize+2, weight='bold')
     # fig.subplots_adjust(hspace=0.1) 
-    plt.savefig("./fig/figure6.jpg", dpi=300)
+    plt.savefig("./fig/figure6_aes.jpg", dpi=300)

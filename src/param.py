@@ -12,8 +12,10 @@ class exponential_beta_scheduler:
         return self.beta_start + (self.beta_end - self.beta_start) * (1 - np.exp(-epoch / self.time_constant))/(1-np.exp(-self.num_epochs/self.time_constant))
 
 args = {
-"data_dir": "data",
-"meta_fn":"data/meta.csv",
+# "data_dir": "/mnt/SSD5/yipeng/VAE/data/",
+# "meta_fn":"/mnt/SSD5/yipeng/VAE/data/meta.csv",
+"data_dir": "/mnt/SSD5/yipeng/VAE/data_new/",
+"meta_fn":"/mnt/SSD5/yipeng/VAE/data_new/meta.csv",
 "device": "cuda:2",
 "lr": 3e-4,
 "use_torch2":False,

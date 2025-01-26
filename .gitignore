@@ -12,3 +12,8 @@ result
 res1
 detroit
 data_old/
+data*/
+res*
+draw/
+*.png
+*.xlsx

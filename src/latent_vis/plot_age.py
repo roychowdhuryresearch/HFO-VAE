@@ -4,6 +4,7 @@ import glob
 import os
 import pandas as pd
 import matplotlib.lines as mlines
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fit_embedding import sample
 from load_embedding import create_df

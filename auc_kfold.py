@@ -10,7 +10,10 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 import os
 from concurrent.futures import ProcessPoolExecutor as Pool
-
+import src.param as param
+# disable warnings
+import warnings
+warnings.filterwarnings("ignore")
 def single_patient_agg(df_p, reconstruct_threshold):
     fold_num = df_p["fold"].unique()[0]
     pt_name = df_p["pt_names"].unique()[0]
@@ -124,11 +127,6 @@ def get_pval(X, y):
     p_values = fii.summary2().tables[1]['P>|z|'].to_dict()
     p_values = {k: round(v, 3) for k, v in p_values.items()}
     return p_values
-# import random forest
-from sklearn.ensemble import RandomForestClassifier   
-from sklearn.svm import SVC
-from sklearn.model_selection import KFold
-
 
 def split_kfolds(df, folds=5):
     datasets_splits = []
@@ -152,8 +150,6 @@ def auc_score(df_train, df_test, cols, save_path, fold = 0):
     pred_probs = clf.predict_proba(df_test[cols])[:,1]
     preds = clf.predict(df_test[cols])
     plot_auc(ground_truths, pred_probs, preds, f"{save_path_use}/{fold}_test.png", cols)
-
-
     # clf.fit(df[cols], df["seizure-free"])
     return ground_truths, preds, pred_probs
 
@@ -218,23 +214,21 @@ def get_auc_acc(dfs,save_path):
     # return np.array(auc_list), np.array(acc_list), df
 
 def setup_df(agg_res, meta_df, reconstruct_threshold):
-        
-        res = patient_agg(agg_res, reconstruct_threshold=reconstruct_threshold)
-        res = pd.concat(res).sort_values("pt_name")
-        # df = pd.read_csv("data/meta.csv")
+    res = patient_agg(agg_res, reconstruct_threshold=reconstruct_threshold)
+    res = pd.concat(res).sort_values("pt_name")
 
-        df = meta_df.merge(res, on="pt_name")
-        #df = df[~df["pt_name"].isin(new_patents)]
-        # df.to_csv(f"{folder}/auc.csv", index=False)
-        df = df[df["resection-status"] ==1]
-        #df = df[df["n_hfo"] > 50]
-        return df
+    df = meta_df.merge(res, on="pt_name")
+    #df = df[~df["pt_name"].isin(new_patents)]
+    # df.to_csv(f"{folder}/auc.csv", index=False)
+    df = df[df["resection-status"] ==1].copy()
+    #df = df[df["n_hfo"] > 50]
+    return df
 
 def patient_filter(folder, save_suffix, sampling="GMM"):
     threshold = 0.5
     dfs = {}
     auc_kfold_df = []
-    meta = pd.read_csv("data/meta.csv")
+    meta = pd.read_csv(param.get_args()["meta_fn"])
     train_list_dict , test_list_dict = {}, {}
     for fold in range(len(glob.glob(f"{folder}/fold_*"))):
         test_df, train_df = aggregate(folder, save_suffix, fold, sampling=sampling, threshold=threshold)
